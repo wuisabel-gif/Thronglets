@@ -3,7 +3,7 @@ name = "thronglets"
 version = "0.1.0"
 edition = "2021"
 description = "A life-simulating terminal game in Rust inspired by Black Mirror S07E04, \"Plaything\"."
-license = "MIT"
+license = "Apache-2.0"
 
 [dependencies]
 ratatui = "0.26"

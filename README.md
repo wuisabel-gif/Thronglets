@@ -96,6 +96,10 @@ SEEDS="0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19" TICKS=30000 scripts/sw
 Move the cursor near a creature to open its inspector: needs, mood, friends,
 known ideas, and its last few memories.
 
+## Video Demo
+
+Watch the YouTube demo: https://youtu.be/GRO-5Mw0oL4
+
 ## What's actually simulated (honest scope)
 
 - **Needs-driven behavior**: hunger / energy / social decay; a utility scorer
@@ -135,4 +139,4 @@ reference: all art here is procedural half-block pixels, the creatures use
 Thronglets-specific terminal sprites, and no third-party assets or characters
 are used.
 
-MIT.
+Apache-2.0.

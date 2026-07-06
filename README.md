@@ -138,6 +138,60 @@ language. A chat is a mechanical exchange of ideas, not a dialogue. The
 emergence here is real but modest: information spreading through a
 population, and behavior drifting with it. Nothing grander. Not yet.
 
+## Why Rust
+
+The honest first answer: because I write Rust, and this was a weekend of
+fun with a language I already trust. But the fit turned out to be real.
+
+A simulation like this is a single mutable world being touched from many
+directions every tick. Creatures read each other's positions, chats lock
+two creatures at once, eating mutates the world mid-loop. In a garbage
+collected language you write that freely and find the aliasing bugs at
+runtime, one weird ghost behavior at a time. The borrow checker forced the
+sim loop into a shape where every mutation has one clear owner: snapshot
+what you need to read, then mutate in one place. It was annoying for about
+an hour and then the entire class of "two things edited the same creature
+in one tick" bugs stopped existing.
+
+The other reason is the deliverable itself. This compiles to a single
+static binary that starts instantly, runs a 30,000 tick headless sweep in
+seconds, and draws at 15fps in a terminal without a perceptible CPU cost.
+No runtime, no interpreter, nothing to install. For a toy world that is
+supposed to feel like a small self-contained artifact, that matters.
+
+## What I learned
+
+**The borrow checker is a design tool, not an obstacle.** The compiler
+rejected my first sim loop, and it was right. You cannot hold a mutable
+reference to one creature while scanning all creatures. The fix, snapshot
+positions first and resolve interactions in a second pass, is just better
+simulation architecture. Rust would not let me write the worse version.
+
+**Emergence is a distribution problem before it is a behavior problem.**
+My first tuning pass had creatures starving in a world producing five
+times the food they needed. Aggregate supply was fine. Access was not:
+creatures could not see far, clustered socially, and stripped local
+patches while remote bushes sat full. Fixing famine amid plenty taught me
+more about the sim than any behavior feature did.
+
+**Tune with telemetry, not eyeballs.** Watching the TUI and nudging
+constants felt productive and was not. One stochastic run tells you
+nothing. The CSV mode and the multi-seed sweep script exist because the
+only way to know if a change helped is the same experiment across twenty
+worlds, compared in numbers.
+
+**Traits keep the door open.** Putting every decision behind one trait,
+perception in, intent out, cost nothing on day one. Now the rule-based
+mind is swappable for anything that satisfies the signature, without
+touching the simulation loop. Rust's traits made the seam explicit
+instead of aspirational.
+
+**Small rules beat clever ones.** Every behavior in here is a threshold
+check or a coin flip. Idea mutation is a 3% chance and a string. And it
+still produces lineages, drift, and colonies that feel like they have
+moods. The lesson that keeps repeating: the interesting thing is never
+the rule, it is the loop the rule lives in.
+
 ## Architecture
 
 Six files, each with one job:

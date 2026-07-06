@@ -162,7 +162,7 @@ population, and behavior drifting with it. Nothing grander. Not yet.
 
 ## Why Rust
 
-The honest first answer: because I write Rust, and this was a weekend of
+The honest first answer: because I love Rust, and this was a weekend of
 fun with a language I already trust. But the fit turned out to be real.
 
 A simulation like this is a single mutable world being touched from many

@@ -1,0 +1,152 @@
+:root {
+  color-scheme: dark;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  background: #15231f;
+  color: #f3f0d0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: linear-gradient(135deg, #101b1b, #263048 52%, #17261f);
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 22px;
+  width: min(1240px, calc(100vw - 32px));
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 24px 0;
+  align-items: center;
+}
+
+.stage {
+  position: relative;
+  min-width: 0;
+  border: 2px solid rgba(218, 228, 146, 0.3);
+  background: #0d1716;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 11 / 9;
+  image-rendering: pixelated;
+}
+
+.hud {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 10px;
+  background: rgba(16, 32, 28, 0.86);
+  border: 1px solid rgba(218, 228, 146, 0.22);
+}
+
+.hud div {
+  display: grid;
+  gap: 2px;
+}
+
+.hud strong {
+  color: #ffe66f;
+  font-size: 18px;
+}
+
+.hud span {
+  color: #98d5c2;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.panel {
+  padding: 24px;
+  background: rgba(14, 29, 26, 0.88);
+  border: 1px solid rgba(218, 228, 146, 0.22);
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #8be0c2;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0 0 14px;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1;
+}
+
+p {
+  color: #d8e2c3;
+  line-height: 1.6;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 24px 0;
+}
+
+button,
+.repo {
+  min-height: 42px;
+  border: 1px solid rgba(255, 230, 111, 0.42);
+  background: #253e35;
+  color: #fff4b0;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover,
+.repo:hover {
+  background: #315044;
+}
+
+.keys {
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.keys p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+kbd {
+  padding: 2px 6px;
+  background: #0d1716;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.status {
+  min-height: 24px;
+  color: #8be0c2;
+}
+
+.repo {
+  display: inline-grid;
+  place-items: center;
+  width: 100%;
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+}

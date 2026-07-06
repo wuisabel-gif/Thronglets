@@ -111,6 +111,28 @@ it. Yes, it keeps a record.
 
 Watch the YouTube demo: https://youtu.be/GRO-5Mw0oL4
 
+## Browser Demo
+
+The browser demo uses the same Rust simulation core as the terminal game. The
+sim compiles to WebAssembly, and the website draws it on an HTML canvas.
+
+Build the WASM bundle:
+
+```
+rustup target add wasm32-unknown-unknown
+cargo install wasm-bindgen-cli
+scripts/build-wasm.sh
+```
+
+Then serve the `web` folder:
+
+```
+cd web
+python3 -m http.server 8000
+```
+
+Open `http://localhost:8000`.
+
 ## What Is Actually Simulated
 
 No magic here. The whole thing is small rules that add up:

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Thronglets Web Demo</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="stage">
+        <canvas id="world" width="880" height="720" aria-label="Playable Thronglets world"></canvas>
+        <div class="hud">
+          <div>
+            <strong id="pop">0</strong>
+            <span>alive</span>
+          </div>
+          <div>
+            <strong id="eggs">0</strong>
+            <span>eggs</span>
+          </div>
+          <div>
+            <strong id="faded">0</strong>
+            <span>faded</span>
+          </div>
+          <div>
+            <strong id="ideas">0</strong>
+            <span>ideas</span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <p class="eyebrow">WASM demo</p>
+        <h1>Thronglets in the browser</h1>
+        <p>
+          This page runs the same Rust simulation core as the terminal game,
+          compiled to WebAssembly and drawn on an HTML canvas.
+        </p>
+
+        <div class="buttons">
+          <button id="food">Drop food</button>
+          <button id="egg">Place egg</button>
+          <button id="idea">Plant idea</button>
+          <button id="theme">Theme</button>
+        </div>
+
+        <div class="keys">
+          <p><kbd>Arrow keys</kbd> move the cursor</p>
+          <p><kbd>F</kbd> food, <kbd>E</kbd> egg, <kbd>T</kbd> idea</p>
+          <p><kbd>Space</kbd> pause, <kbd>+</kbd>/<kbd>-</kbd> speed</p>
+        </div>
+
+        <p class="status" id="status">Loading WASM...</p>
+        <a class="repo" href="https://github.com/wuisabel-gif/Thronglets">GitHub repo</a>
+      </aside>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

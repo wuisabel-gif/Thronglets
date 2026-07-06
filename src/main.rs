@@ -1,16 +1,7 @@
-//! Thronglets — a tiny pixel-art creature society in your terminal.
+//! Thronglets: a tiny pixel-art creature society in your terminal.
 //!
 //! Run `thronglets` for the TUI, or `thronglets --headless --ticks 20000`
 //! to run the society without rendering and print diffusion stats.
-
-mod config;
-mod creature;
-mod mind;
-mod render;
-mod sim;
-mod sound;
-mod theme;
-mod world;
 
 use std::io;
 use std::time::{Duration, Instant};
@@ -24,11 +15,12 @@ use ratatui::backend::CrosstermBackend;
 use ratatui::layout::Rect;
 use ratatui::Terminal;
 
-use config::{config_path, load, save_theme};
-use render::{blit, compose, stat_badge, status_panel, toolbar, Camera};
-use sim::{Sim, TelemetrySnapshot};
-use sound::{SoundEvent, SoundPlayer};
-use world::{WORLD_H, WORLD_W};
+use thronglets::config::{config_path, load, save_theme};
+use thronglets::render::{blit, compose, stat_badge, status_panel, toolbar, Camera};
+use thronglets::sim::{Sim, TelemetrySnapshot};
+use thronglets::sound::{SoundEvent, SoundPlayer};
+use thronglets::theme;
+use thronglets::world::{WORLD_H, WORLD_W};
 
 const START_POP: usize = 8;
 
@@ -178,7 +170,7 @@ fn report(sim: &Sim, t: u64) {
         sim.faded_count(),
         sim.culture.ideas.len(),
         if top.is_empty() {
-            "—".to_string()
+            "-".to_string()
         } else {
             top.join(", ")
         },

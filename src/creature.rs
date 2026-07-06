@@ -3,7 +3,7 @@
 //! Each creature has:
 //! - needs (hunger / energy / social) that decay and drive behavior
 //! - a tiny episodic memory of recent events (visible in the inspector)
-//! - a set of *ideas* it knows — the unit of culture that spreads via chirping
+//! - a set of *ideas* it knows, the unit of culture that spreads via chirping
 //! - per-creature relationships (affinity toward specific others)
 
 use std::collections::HashMap;

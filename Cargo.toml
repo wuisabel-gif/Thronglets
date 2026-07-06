@@ -5,10 +5,19 @@ edition = "2021"
 description = "A life-simulating terminal game in Rust inspired by Black Mirror S07E04, \"Plaything\"."
 license = "Apache-2.0"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
+rand = "0.8"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 ratatui = "0.26"
 crossterm = "0.27"
-rand = "0.8"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+getrandom = { version = "0.2", features = ["js"] }
 
 [profile.release]
 opt-level = 3

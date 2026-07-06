@@ -97,7 +97,7 @@ impl Sim {
             stats: SimStats::default(),
         };
 
-        // Seed the founding ideas — one of each bias, given to random founders.
+        // Seed the founding ideas, one of each bias, given to random founders.
         let founders_ideas = vec![
             sim.culture.coin(&mut sim.rng, Bias::Forager, None),
             sim.culture.coin(&mut sim.rng, Bias::Chatty, None),

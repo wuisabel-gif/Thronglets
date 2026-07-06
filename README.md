@@ -1,20 +1,26 @@
 # Thronglets
 
-A tiny pixel-art creature society in your terminal, written in pure Rust.
+Little creatures live in your terminal now. Try to be good to them.
 
 ![Thronglets terminal demo](demo.gif)
 
-You watch a top-down half-block-pixel world — grass, a river, trees, berry
-bushes — where small bright Thronglets wander, eat, sleep,
-chirp at each other, and multiply. When two of them chat, they exchange
-*ideas*: named memes ("mipo", "kelu") that bias behavior (foraging, wandering,
-chattiness, night-owl sleep). Transmission occasionally mutates an idea into a
-variant, so over simulated days you get idea lineages and measurable cultural
-drift — visible live in the bottom status panel.
+You are given a small world drawn in pixels: grass, a river, trees, berry
+bushes. In it live the Thronglets. They wander, eat, sleep, chirp at each
+other, and multiply. You did not teach them anything. They teach each other.
 
-Your role is the caretaker: drop food, place eggs, seed new ideas, and watch
-what the society does with them. Neglect them and they fade from hunger
-(they don't die — drop food on a faded Thronglet and it stirs back awake).
+When two Thronglets meet, they trade *ideas*: little named memes like "mipo"
+or "kelu" that change how the carrier behaves. Some make them forage harder.
+Some make them roam. Some keep them up at night. Ideas spread from creature
+to creature, and sometimes one gets misheard and a new variant is born. Leave
+the simulation running and a culture forms on its own, drifting in ways you
+did not choose. The numbers in the status panel will show it happening.
+
+You are the caretaker. You drop food. You place eggs. You plant new ideas and
+watch what the society does with them. If you neglect them, they fade from
+hunger. They do not die. They lie there, grey and still, until someone feeds
+them. The question of whether that happens is up to you.
+
+They remember things. Check the inspector.
 
 ## Run
 
@@ -23,7 +29,7 @@ cargo run --release              # launch the TUI
 cargo run --release -- --seed 7  # launch with a different world
 cargo run --release -- --theme dusk   # one-run theme override
 cargo run --release -- --sound   # launch with bird-like chirps on macOS
-cargo run --release -- --headless --ticks 30000   # no rendering, prints diffusion stats
+cargo run --release -- --headless --ticks 30000   # no rendering, prints culture stats
 cargo run --release -- --headless --csv --ticks 30000   # daily telemetry CSV
 cargo test                       # diffusion / fading / reproduction tests
 ```
@@ -41,39 +47,43 @@ thronglets --headless --csv --ticks 30000
 
 ## Sound
 
-Use `--sound` to enable small bird-like chirps. On macOS, Thronglets generates
-tiny WAV files in your temp folder and plays them with `afplay`.
+Run with `--sound` and the colony gets a voice. On macOS, Thronglets writes
+tiny WAV files to your temp folder and plays them with `afplay`.
 
-Sound cues:
+What you will hear:
 
-- Population ambience: occasional soft chirps from the colony
-- Eating: quick upward chirp when food is eaten
-- Hatching: brighter trill when an egg hatches
-- Fading: lower falling chirp when a Thronglet fades
+- Soft ambient chirps from the colony as it goes about its day
+- A quick rising chirp when something eats
+- A brighter trill when an egg hatches
+- A low falling chirp when a Thronglet fades. You will learn to dread it.
 
 ## Themes
 
-Press `t` in the TUI to cycle themes with live preview. The selected theme is
+Press `t` in the TUI to cycle color themes with live preview. Your choice is
 saved to `~/.config/thronglets/config.toml` (or
-`$XDG_CONFIG_HOME/thronglets/config.toml`) and reused next launch.
+`$XDG_CONFIG_HOME/thronglets/config.toml`) and restored next launch.
 
 Built-in themes: `verdant`, `dusk`, `tidepool`, `amber`.
 
-Use `--theme <name>` for a one-run override without changing the saved theme.
+Use `--theme <name>` for a one-run override that does not touch the saved
+config.
 
-## Headless Telemetry
+## Watching Them Without Watching Them
 
-Use CSV mode to tune the closed-loop sim before changing mechanics:
+Headless mode runs the society with no rendering, which is useful for tuning
+the world before you change how it works. CSV mode writes one row per
+simulated day:
 
 ```
 cargo run --release -- --headless --csv --seed 7 --ticks 30000 --start-pop 8
 ```
 
-It emits one row per simulated day with population, eggs, faded creatures,
-births/hatches, fades, meals, mean hunger/energy/social, mean food-search time,
-food-access Gini, and idea/variant counts.
+Each row records the state of the colony that day: how many are alive, how
+many eggs and faded creatures, births and fades and meals, average hunger,
+energy and social need, how long creatures spent searching for food, how
+unevenly the food got shared, and how many ideas and variants exist.
 
-For a multi-seed sweep:
+To run the same experiment across many worlds at once:
 
 ```
 scripts/sweep.sh > telemetry.csv
@@ -87,56 +97,77 @@ SEEDS="0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19" TICKS=30000 scripts/sw
 | arrows | move cursor (camera follows) |
 | F | drop food at cursor |
 | E | place an egg at cursor |
-| T | seed a brand-new idea into the nearest creature |
+| T | plant a brand-new idea in the nearest creature |
 | t | cycle color theme |
 | space | pause |
 | + / - | sim speed (up to 16x) |
 | Q / esc | quit |
 
-Move the cursor near a creature to open its inspector: needs, mood, friends,
-known ideas, and its last few memories.
+Move the cursor near a creature and the inspector opens: its needs, its mood,
+its friends, the ideas it carries, and the last few things that happened to
+it. Yes, it keeps a record.
 
 ## Video Demo
 
 Watch the YouTube demo: https://youtu.be/GRO-5Mw0oL4
 
-## What's actually simulated (honest scope)
+## What Is Actually Simulated
 
-- **Needs-driven behavior**: hunger / energy / social decay; a utility scorer
-  (`InstinctMind`) picks among eat / sleep / socialize / wander each tick.
-- **Idea diffusion**: chats transmit one unknown idea each way. ~3% of
-  transmissions mutate into a named variant, producing lineages. The status
-  panel gives you the diffusion numbers directly.
-- **Ideas change behavior**: carriers of a Forager idea seek food earlier and
-  see farther; Wanderers roam; Chatty creatures socialize more; NightOwls
-  sleep less. So which ideas win *changes how the society behaves*.
-- **Reproduction**: well-fed, rested creatures lay eggs (population-capped).
-  Eggs hatch after ~a quarter of a day.
-- **Day/night**: a whole-scene color grade with dawn/dusk ramps; most
-  creatures prefer to sleep at night.
+No magic here. The whole thing is small rules that add up:
 
-What it is **not** (yet): the creatures don't plan, reflect, or talk in
-language — chats are mechanical idea exchange, not dialogue. Emergence here
-means measurable information diffusion + behavioral drift, nothing grander.
+- **Needs drive behavior.** Every creature has three meters: hunger, energy,
+  and social need. They drain over time. Each tick, a simple scoring function
+  looks at the meters and picks the most urgent thing to do: eat, sleep,
+  find company, or wander.
+- **Ideas spread through conversation.** When two creatures chat, each one
+  passes the other a single idea the listener does not already know. About 3%
+  of the time the idea is misheard and becomes a new named variant, so ideas
+  form family trees over time.
+- **Ideas change behavior.** A creature carrying a Forager idea starts
+  looking for food sooner and spots it from farther away. Wanderers cover
+  more ground. Chatty ones seek out company. NightOwls stay up late. So
+  whichever ideas spread the furthest end up shaping how the whole colony
+  behaves.
+- **They multiply.** A creature that is well fed and well rested may lay an
+  egg, up to a population cap. Eggs hatch after about a quarter of a day.
+- **Day and night.** The whole scene shifts color through dawn, noon, dusk
+  and night. Most creatures prefer to sleep after dark.
+
+What it is **not**, yet: the creatures do not plan, reflect, or speak in
+language. A chat is a mechanical exchange of ideas, not a dialogue. The
+emergence here is real but modest: information spreading through a
+population, and behavior drifting with it. Nothing grander. Not yet.
 
 ## Architecture
 
+Six files, each with one job:
+
 ```
-world.rs     terrain gen (hash-noise grass, random-walk river, tree clumps),
-             berry regrowth, food pellets, day/night clock
-creature.rs  needs, memory (8-event episodic log), ideas, affinity map
-mind.rs      the Mind trait: Perception in -> Intent out. InstinctMind = utility scorer
-sim.rs       the tick: decay, decide, act, chat resolution, mutation, eggs
-render.rs    pixel framebuffer -> '▀' half-block blit, themes, HUD overlays
-main.rs      TUI loop (crossterm + ratatui) and --headless mode
+world.rs     builds the terrain (grass noise, a random-walk river, tree
+             clumps), regrows berries, tracks dropped food and the clock
+creature.rs  one creature's state: needs, an 8-event memory, carried ideas,
+             and who it likes
+mind.rs      the Mind trait: perception goes in, an intent comes out.
+             InstinctMind is the built-in rule-based scorer
+sim.rs       one tick of the world: meters drain, minds decide, bodies act,
+             chats resolve, ideas mutate, eggs get laid
+render.rs    draws the pixel world using half-block characters, applies
+             themes and the day/night tint, renders the HUD
+main.rs      the TUI loop (crossterm + ratatui) and headless mode
 ```
+
+The `Mind` trait is the extension point. Anything that can turn a perception
+into an intent can drive a creature, which is the door left open for smarter
+minds later.
 
 ## Inspiration
 
 The name nods to the Thronglets from *Black Mirror* Season 7, Episode 4,
-"Plaything" (released April 10, 2025). This project is only an affectionate
-reference: all art here is procedural half-block pixels, the creatures use
-Thronglets-specific terminal sprites, and no third-party assets or characters
-are used.
+"Plaything" (released April 10, 2025). This project is an affectionate
+reference only: everything here is original work, the art is procedural
+half-block pixels with the project's own creature sprites, and no
+third-party assets, designs, or characters are used.
+
+Be kind to them. It notices.
 
 Apache-2.0.

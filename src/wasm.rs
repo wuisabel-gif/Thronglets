@@ -68,6 +68,14 @@ impl ThrongletsWeb {
         self.sim.faded_count()
     }
 
+    pub fn food_units(&self) -> u32 {
+        self.sim.food_units()
+    }
+
+    pub fn scarcity(&self) -> f32 {
+        self.sim.scarcity_pressure()
+    }
+
     pub fn ideas(&self) -> usize {
         self.sim.culture.ideas.len()
     }

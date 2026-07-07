@@ -81,7 +81,7 @@ fn headless(seed: u64, ticks: u64, start_pop: usize, csv: bool) -> io::Result<()
     let mut previous = sim.telemetry();
     if csv {
         println!(
-            "seed,tick,day,population,eggs,faded,total_creatures,eggs_laid,hatches,fades,revivals,meals,day_eggs_laid,day_hatches,day_fades,day_revivals,day_meals,mean_hunger,mean_energy,mean_social,mean_food_search_ticks,food_access_gini,ideas,variants"
+            "seed,tick,day,population,eggs,faded,total_creatures,eggs_laid,hatches,fades,revivals,meals,scarcity_events,day_eggs_laid,day_hatches,day_fades,day_revivals,day_meals,day_scarcity_events,food_units,scarcity,mean_hunger,mean_energy,mean_social,mean_food_search_ticks,food_access_gini,ideas,variants"
         );
         print_csv_row(seed, &previous, &previous);
     } else {
@@ -125,7 +125,7 @@ fn headless(seed: u64, ticks: u64, start_pop: usize, csv: bool) -> io::Result<()
 
 fn print_csv_row(seed: u64, current: &TelemetrySnapshot, previous: &TelemetrySnapshot) {
     println!(
-        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{:.4},{:.4},{:.4},{:.2},{:.4},{},{}",
+        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{:.4},{:.4},{:.4},{:.4},{:.2},{:.4},{},{}",
         seed,
         current.tick,
         current.day,
@@ -138,11 +138,17 @@ fn print_csv_row(seed: u64, current: &TelemetrySnapshot, previous: &TelemetrySna
         current.fades,
         current.revivals,
         current.meals,
+        current.scarcity_events,
         current.eggs_laid.saturating_sub(previous.eggs_laid),
         current.hatches.saturating_sub(previous.hatches),
         current.fades.saturating_sub(previous.fades),
         current.revivals.saturating_sub(previous.revivals),
         current.meals.saturating_sub(previous.meals),
+        current
+            .scarcity_events
+            .saturating_sub(previous.scarcity_events),
+        current.food_units,
+        current.scarcity,
         current.mean_hunger,
         current.mean_energy,
         current.mean_social,

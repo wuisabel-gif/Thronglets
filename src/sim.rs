@@ -17,6 +17,8 @@ const EGG_HATCH_TICKS: u32 = 300;
 const CHAT_TICKS: u16 = 24;
 const MUTATION_CHANCE: f64 = 0.03;
 const REPRO_POP_CAP: usize = 60;
+const FOOD_UNITS_PER_CREATURE: f32 = 6.0;
+const SCARCITY_EVENT_TICKS: u64 = 180;
 
 pub struct EventLog(pub Vec<String>);
 
@@ -51,6 +53,7 @@ pub struct SimStats {
     pub fades: u64,
     pub revivals: u64,
     pub meals: u64,
+    pub scarcity_events: u64,
     pub food_search_ticks: u64,
     pub completed_food_searches: u64,
     pub meals_by_creature: HashMap<CreatureId, u64>,
@@ -69,6 +72,9 @@ pub struct TelemetrySnapshot {
     pub fades: u64,
     pub revivals: u64,
     pub meals: u64,
+    pub scarcity_events: u64,
+    pub food_units: u32,
+    pub scarcity: f32,
     pub mean_hunger: f32,
     pub mean_energy: f32,
     pub mean_social: f32,
@@ -172,6 +178,7 @@ impl Sim {
     pub fn step(&mut self) {
         self.world.step(&mut self.rng);
         let day = self.world.day();
+        let scarcity = self.scarcity_pressure();
 
         // Snapshot positions for perception (id, x, y, available-for-chat).
         let positions: Vec<(CreatureId, usize, usize, bool)> = self
@@ -220,9 +227,9 @@ impl Sim {
                     }
                     Activity::Hatching => {}
                     _ => {
-                        c.hunger = (c.hunger + 0.0009).min(1.0);
-                        c.energy = (c.energy - 0.0007).max(0.0);
-                        c.social = (c.social - 0.0006).max(0.0);
+                        c.hunger = (c.hunger + 0.0009 * (1.0 + scarcity * 1.6)).min(1.0);
+                        c.energy = (c.energy - 0.0007 * (1.0 + scarcity * 0.4)).max(0.0);
+                        c.social = (c.social - 0.0006 * (1.0 + scarcity * 1.8)).max(0.0);
                     }
                 }
                 if c.hunger >= 1.0 && !c.faded {
@@ -295,6 +302,7 @@ impl Sim {
                                     if c.hunger < 0.2
                                         && c.energy > 0.5
                                         && pop < REPRO_POP_CAP
+                                        && scarcity < 0.35
                                         && self.rng.gen_bool(0.10)
                                     {
                                         eggs_to_lay.push((c.x, c.y));
@@ -374,6 +382,59 @@ impl Sim {
 
         for (x, y) in eggs_to_lay {
             self.spawn_egg(x, y);
+        }
+        if scarcity >= 0.45 && self.world.tick % SCARCITY_EVENT_TICKS == 0 {
+            self.apply_scarcity_event(day, scarcity);
+        }
+    }
+
+    pub fn food_units(&self) -> u32 {
+        self.world.food_units()
+    }
+
+    pub fn scarcity_pressure(&self) -> f32 {
+        let pop = self.alive_count();
+        if pop < 2 {
+            return 0.0;
+        }
+        let needed = pop as f32 * FOOD_UNITS_PER_CREATURE;
+        if needed <= f32::EPSILON {
+            return 0.0;
+        }
+        ((needed - self.food_units() as f32) / needed).clamp(0.0, 1.0)
+    }
+
+    fn apply_scarcity_event(&mut self, day: u64, scarcity: f32) {
+        let candidates: Vec<usize> = self
+            .creatures
+            .iter()
+            .enumerate()
+            .filter(|(_, c)| !c.faded && !matches!(c.activity, Activity::Hatching))
+            .map(|(i, _)| i)
+            .collect();
+        if candidates.is_empty() {
+            return;
+        }
+        let i = candidates[self.rng.gen_range(0..candidates.len())];
+        let c = &mut self.creatures[i];
+        c.social = (c.social - 0.25).max(0.0);
+        c.energy = (c.energy - 0.12).max(0.0);
+        c.hunger = (c.hunger + 0.08 * scarcity).min(1.0);
+        c.remember("felt the food panic".to_string());
+        let name = c.name.clone();
+        self.stats.scarcity_events += 1;
+        self.events
+            .push(day, format!("{} panics as food runs thin", name));
+
+        if scarcity > 0.72 && c.ideas.len() > 1 && self.rng.gen_bool(0.25) {
+            let lost = self.rng.gen_range(0..c.ideas.len());
+            let idea = c.ideas.remove(lost);
+            let idea_name = self.culture.ideas[idea as usize].name.clone();
+            c.remember(format!("forgot '{}' in the hunger", idea_name));
+            self.events.push(
+                day,
+                format!("{} forgets '{}' in the hunger", name, idea_name),
+            );
         }
     }
 
@@ -527,6 +588,9 @@ impl Sim {
             fades: self.stats.fades,
             revivals: self.stats.revivals,
             meals: self.stats.meals,
+            scarcity_events: self.stats.scarcity_events,
+            food_units: self.food_units(),
+            scarcity: self.scarcity_pressure(),
             mean_hunger,
             mean_energy,
             mean_social,
@@ -695,6 +759,50 @@ mod tests {
             "expected reproduction under abundance ({} -> {})",
             start,
             sim.creatures.len()
+        );
+    }
+
+    #[test]
+    fn scarcity_pressure_rises_when_population_exceeds_food() {
+        let mut sim = Sim::new(21, 30);
+        for tile in sim.world.tiles.iter_mut() {
+            if matches!(tile, crate::world::Tile::Bush { .. }) {
+                *tile = crate::world::Tile::Grass(0);
+            }
+        }
+        sim.world.pellets.clear();
+
+        assert!(sim.food_units() < sim.alive_count() as u32);
+        assert!(
+            sim.scarcity_pressure() > 0.9,
+            "crowded worlds with no food should be in crisis"
+        );
+    }
+
+    #[test]
+    fn scarcity_events_hurt_creature_state() {
+        let mut sim = Sim::new(22, 16);
+        for tile in sim.world.tiles.iter_mut() {
+            if matches!(tile, crate::world::Tile::Bush { .. }) {
+                *tile = crate::world::Tile::Grass(0);
+            }
+        }
+        sim.world.pellets.clear();
+        let before = sim.telemetry().scarcity_events;
+
+        for _ in 0..SCARCITY_EVENT_TICKS {
+            sim.step();
+        }
+
+        assert!(
+            sim.telemetry().scarcity_events > before,
+            "food crisis should create bad colony events"
+        );
+        assert!(
+            sim.creatures
+                .iter()
+                .any(|c| c.memory.iter().any(|m| m.contains("food panic"))),
+            "at least one creature should remember the scarcity stress"
         );
     }
 }

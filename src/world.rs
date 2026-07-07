@@ -228,6 +228,23 @@ impl World {
             self.pellets.push((x, y, 1));
         }
     }
+
+    pub fn food_units(&self) -> u32 {
+        let berries = self
+            .tiles
+            .iter()
+            .map(|tile| match tile {
+                Tile::Bush { berries } => *berries as u32,
+                _ => 0,
+            })
+            .sum::<u32>();
+        let pellets = self
+            .pellets
+            .iter()
+            .map(|(_, _, amt)| *amt as u32)
+            .sum::<u32>();
+        berries + pellets
+    }
 }
 
 fn near_water(tiles: &[Tile], x: usize, y: usize, r: isize) -> bool {
@@ -276,5 +293,25 @@ mod tests {
         assert!(world.eat_at(x, y));
         assert_eq!(world.pellets[0].2, 0);
         assert!(world.nearest_food(x, y, 1).is_none());
+    }
+
+    #[test]
+    fn food_units_counts_berries_and_dropped_food() {
+        let mut rng = rand::rngs::StdRng::seed_from_u64(12);
+        let mut world = World::generate(&mut rng);
+        for tile in world.tiles.iter_mut() {
+            if let Tile::Bush { berries } = tile {
+                *berries = 0;
+            }
+        }
+        world.pellets.clear();
+        let (x, y) = (0..WORLD_H)
+            .flat_map(|y| (0..WORLD_W).map(move |x| (x, y)))
+            .find(|&(x, y)| world.at(x, y).walkable())
+            .expect("generated world has walkable ground");
+
+        assert_eq!(world.food_units(), 0);
+        world.drop_food(x, y);
+        assert_eq!(world.food_units(), 1);
     }
 }

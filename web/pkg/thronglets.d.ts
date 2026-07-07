@@ -9,6 +9,7 @@ export class ThrongletsWeb {
     drop_food(): void;
     eggs(): number;
     faded(): number;
+    food_units(): number;
     ideas(): number;
     move_cursor(dx: number, dy: number): void;
     constructor(seed: number, start_pop: number);
@@ -16,6 +17,7 @@ export class ThrongletsWeb {
     place_egg(): void;
     population(): number;
     render_rgba(width: number, height: number): Uint8Array;
+    scarcity(): number;
     seed_idea(): void;
     set_cursor(x: number, y: number): void;
     step(ticks: number): void;
@@ -37,6 +39,7 @@ export interface InitOutput {
     readonly throngletsweb_drop_food: (a: number) => void;
     readonly throngletsweb_eggs: (a: number) => number;
     readonly throngletsweb_faded: (a: number) => number;
+    readonly throngletsweb_food_units: (a: number) => number;
     readonly throngletsweb_ideas: (a: number) => number;
     readonly throngletsweb_move_cursor: (a: number, b: number, c: number) => void;
     readonly throngletsweb_new: (a: number, b: number) => number;
@@ -44,6 +47,7 @@ export interface InitOutput {
     readonly throngletsweb_place_egg: (a: number) => void;
     readonly throngletsweb_population: (a: number) => number;
     readonly throngletsweb_render_rgba: (a: number, b: number, c: number) => [number, number];
+    readonly throngletsweb_scarcity: (a: number) => number;
     readonly throngletsweb_seed_idea: (a: number) => void;
     readonly throngletsweb_set_cursor: (a: number, b: number, c: number) => void;
     readonly throngletsweb_step: (a: number, b: number) => void;

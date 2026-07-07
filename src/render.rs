@@ -365,10 +365,12 @@ pub fn status_panel<'a>(
         Span::styled(format!("day {}", sim.world.day()), white),
         Span::styled(
             format!(
-                "  theme {}  eggs {}  faded {}  ideas {}+{}",
+                "  theme {}  eggs {}  faded {}  food {}  scarcity {:.0}%  ideas {}+{}",
                 palette.name,
                 sim.egg_count(),
                 sim.faded_count(),
+                sim.food_units(),
+                sim.scarcity_pressure() * 100.0,
                 sim.culture.ideas.len().saturating_sub(variants),
                 variants
             ),

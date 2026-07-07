@@ -45,6 +45,13 @@ export class ThrongletsWeb {
     /**
      * @returns {number}
      */
+    food_units() {
+        const ret = wasm.throngletsweb_food_units(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * @returns {number}
+     */
     ideas() {
         const ret = wasm.throngletsweb_ideas(this.__wbg_ptr);
         return ret >>> 0;
@@ -89,6 +96,13 @@ export class ThrongletsWeb {
         var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
         wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
         return v1;
+    }
+    /**
+     * @returns {number}
+     */
+    scarcity() {
+        const ret = wasm.throngletsweb_scarcity(this.__wbg_ptr);
+        return ret;
     }
     seed_idea() {
         wasm.throngletsweb_seed_idea(this.__wbg_ptr);

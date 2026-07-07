@@ -11,6 +11,20 @@ export class ThrongletsWeb {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_throngletsweb_free(ptr, 0);
     }
+    /**
+     * @returns {number}
+     */
+    camera_x() {
+        const ret = wasm.throngletsweb_camera_x(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * @returns {number}
+     */
+    camera_y() {
+        const ret = wasm.throngletsweb_camera_y(this.__wbg_ptr);
+        return ret >>> 0;
+    }
     drop_food() {
         wasm.throngletsweb_drop_food(this.__wbg_ptr);
     }
@@ -113,6 +127,20 @@ export class ThrongletsWeb {
     tick() {
         const ret = wasm.throngletsweb_tick(this.__wbg_ptr);
         return BigInt.asUintN(64, ret);
+    }
+    /**
+     * @returns {number}
+     */
+    view_height() {
+        const ret = wasm.throngletsweb_view_height(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * @returns {number}
+     */
+    view_width() {
+        const ret = wasm.throngletsweb_view_width(this.__wbg_ptr);
+        return ret >>> 0;
     }
     /**
      * @returns {number}

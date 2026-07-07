@@ -20,11 +20,27 @@
       </header>
 
       <section class="screen">
-        <canvas id="world" width="960" height="720" aria-label="Playable Thronglets world"></canvas>
-      </section>
+        <canvas id="world" width="960" height="640" aria-label="Playable Thronglets world"></canvas>
 
-      <footer class="terminal-footer">
-        <div class="readout">
+        <div class="tools-panel">
+          <span class="panel-title">tools</span>
+          <button id="food"><span>F</span> food</button>
+          <button id="egg"><span>E</span> egg</button>
+          <button id="idea"><span>T</span> idea</button>
+          <button id="theme"><span>t</span> theme</button>
+          <p>+ fast</p>
+          <p>- slow</p>
+          <p>space pause</p>
+          <p>x<span id="speed">1</span></p>
+        </div>
+
+        <div class="pop-badge">
+          <span>THRONG</span>
+          <strong id="badge-pop">0</strong>
+        </div>
+
+        <div class="status-panel">
+          <span class="panel-title">Thronglets</span>
           <span id="status">booting wasm...</span>
           <span>day <b id="day">0</b></span>
           <span>pop <b id="pop">0</b></span>
@@ -32,14 +48,7 @@
           <span>faded <b id="faded">0</b></span>
           <span>ideas <b id="ideas">0</b></span>
         </div>
-
-        <div class="command-row">
-          <button id="food"><span>F</span> food</button>
-          <button id="egg"><span>E</span> egg</button>
-          <button id="idea"><span>T</span> idea</button>
-          <button id="theme"><span>t</span> theme</button>
-        </div>
-      </footer>
+      </section>
     </main>
 
     <script type="module" src="./app.js"></script>

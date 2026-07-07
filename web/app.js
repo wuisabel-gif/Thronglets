@@ -8,6 +8,8 @@ const eggsEl = document.getElementById("eggs");
 const fadedEl = document.getElementById("faded");
 const ideasEl = document.getElementById("ideas");
 const dayEl = document.getElementById("day");
+const badgePopEl = document.getElementById("badge-pop");
+const speedEl = document.getElementById("speed");
 
 let game;
 let paused = false;
@@ -22,11 +24,13 @@ function draw() {
   ctx.putImageData(image, 0, 0);
 
   popEl.textContent = game.population();
+  badgePopEl.textContent = game.population();
   eggsEl.textContent = game.eggs();
   fadedEl.textContent = game.faded();
   ideasEl.textContent = game.ideas();
   dayEl.textContent = Math.floor(Number(game.tick()) / 2400);
-  statusEl.textContent = `${paused ? "paused" : "running"} | ${game.theme_name()} | x${speed}`;
+  speedEl.textContent = speed;
+  statusEl.textContent = `${paused ? "paused" : "running"} | ${game.theme_name()}`;
 
   requestAnimationFrame(draw);
 }
@@ -39,8 +43,8 @@ function bindControls() {
 
   canvas.addEventListener("pointerdown", (event) => {
     const rect = canvas.getBoundingClientRect();
-    const x = Math.floor(((event.clientX - rect.left) / rect.width) * game.world_width());
-    const y = Math.floor(((event.clientY - rect.top) / rect.height) * game.world_height());
+    const x = game.camera_x() + Math.floor(((event.clientX - rect.left) / rect.width) * game.view_width());
+    const y = game.camera_y() + Math.floor(((event.clientY - rect.top) / rect.height) * game.view_height());
     game.set_cursor(x, y);
   });
 

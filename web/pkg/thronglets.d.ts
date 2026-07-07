@@ -4,6 +4,8 @@
 export class ThrongletsWeb {
     free(): void;
     [Symbol.dispose](): void;
+    camera_x(): number;
+    camera_y(): number;
     drop_food(): void;
     eggs(): number;
     faded(): number;
@@ -19,6 +21,8 @@ export class ThrongletsWeb {
     step(ticks: number): void;
     theme_name(): string;
     tick(): bigint;
+    view_height(): number;
+    view_width(): number;
     world_height(): number;
     world_width(): number;
 }
@@ -28,6 +32,8 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly __wbg_throngletsweb_free: (a: number, b: number) => void;
+    readonly throngletsweb_camera_x: (a: number) => number;
+    readonly throngletsweb_camera_y: (a: number) => number;
     readonly throngletsweb_drop_food: (a: number) => void;
     readonly throngletsweb_eggs: (a: number) => number;
     readonly throngletsweb_faded: (a: number) => number;
@@ -43,6 +49,8 @@ export interface InitOutput {
     readonly throngletsweb_step: (a: number, b: number) => void;
     readonly throngletsweb_theme_name: (a: number) => [number, number];
     readonly throngletsweb_tick: (a: number) => bigint;
+    readonly throngletsweb_view_height: (a: number) => number;
+    readonly throngletsweb_view_width: (a: number) => number;
     readonly throngletsweb_world_height: (a: number) => number;
     readonly throngletsweb_world_width: (a: number) => number;
     readonly __wbindgen_externrefs: WebAssembly.Table;

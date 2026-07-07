@@ -80,6 +80,7 @@ body {
 }
 
 .screen {
+  position: relative;
   background: #050807;
   padding: 10px;
 }
@@ -88,51 +89,96 @@ canvas {
   display: block;
   width: 100%;
   max-height: calc(100vh - 180px);
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 3 / 2;
   background: #050807;
   image-rendering: pixelated;
 }
 
-.terminal-footer {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 12px;
-  padding: 10px 12px 12px;
-  border-top: 1px solid #23452f;
-  background: #07110d;
-}
-
-.readout {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 16px;
-  min-height: 32px;
-  color: #84d39c;
+.tools-panel,
+.pop-badge,
+.status-panel {
+  position: absolute;
+  background: rgba(7, 17, 13, 0.9);
+  border: 1px solid #346447;
+  color: #dfffd2;
   font-size: 14px;
 }
 
-.readout b,
-#status {
+.panel-title {
+  position: absolute;
+  top: -11px;
+  left: 12px;
+  padding: 0 6px;
+  background: #07110d;
+  color: #3aa768;
+}
+
+.tools-panel {
+  top: 22px;
+  left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 126px;
+  padding: 18px 10px 10px;
+}
+
+.tools-panel p {
+  margin: 0;
+  color: #dfffd2;
+}
+
+.pop-badge {
+  top: 22px;
+  right: 22px;
+  display: grid;
+  place-items: center;
+  min-width: 76px;
+  padding: 12px 8px 10px;
+  background: rgba(154, 186, 88, 0.9);
+  border-color: #1b3825;
+  color: #10180d;
+}
+
+.pop-badge span {
+  color: #fff;
+  font-weight: 700;
+}
+
+.pop-badge strong {
+  color: #e8ff72;
+  font-size: 24px;
+}
+
+.status-panel {
+  left: 22px;
+  right: 22px;
+  bottom: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  min-height: 46px;
+  padding: 17px 12px 10px;
+  align-items: center;
+}
+
+.status-panel b,
+#status,
+#speed {
   color: #e8ff72;
   font-weight: 700;
 }
 
-.command-row {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(78px, 1fr));
-  gap: 8px;
-}
-
 button {
-  min-height: 32px;
-  padding: 0 10px;
-  border: 1px solid #346447;
+  min-height: 22px;
+  padding: 0;
+  border: 0;
   border-radius: 0;
-  background: #0c1712;
+  background: transparent;
   color: #dfffd2;
   font: inherit;
   font-size: 13px;
+  text-align: left;
   cursor: pointer;
 }
 
@@ -141,8 +187,7 @@ button span {
 }
 
 button:hover {
-  background: #14271d;
-  border-color: #62a76f;
+  color: #e8ff72;
 }
 
 @media (max-width: 760px) {
@@ -167,11 +212,24 @@ button:hover {
     max-height: none;
   }
 
-  .terminal-footer {
-    grid-template-columns: 1fr;
+  .tools-panel {
+    top: 12px;
+    left: 12px;
+    width: 108px;
+    font-size: 12px;
   }
 
-  .command-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .pop-badge {
+    top: 12px;
+    right: 12px;
+    min-width: 62px;
+    font-size: 12px;
+  }
+
+  .status-panel {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    font-size: 12px;
   }
 }

@@ -5,6 +5,9 @@ use crate::sim::Sim;
 use crate::theme::{self, Palette, Rgb};
 use crate::world::{Tile, WORLD_H, WORLD_W};
 
+const WEB_VIEW_W: usize = 96;
+const WEB_VIEW_H: usize = 64;
+
 #[wasm_bindgen]
 pub struct ThrongletsWeb {
     sim: Sim,
@@ -31,6 +34,22 @@ impl ThrongletsWeb {
 
     pub fn world_height(&self) -> usize {
         WORLD_H
+    }
+
+    pub fn view_width(&self) -> usize {
+        WEB_VIEW_W
+    }
+
+    pub fn view_height(&self) -> usize {
+        WEB_VIEW_H
+    }
+
+    pub fn camera_x(&self) -> usize {
+        self.camera_origin().0
+    }
+
+    pub fn camera_y(&self) -> usize {
+        self.camera_origin().1
     }
 
     pub fn tick(&self) -> u64 {
@@ -95,72 +114,125 @@ impl ThrongletsWeb {
             return pixels;
         }
 
-        let scale_x = WORLD_W as f32 / width as f32;
-        let scale_y = WORLD_H as f32 / height as f32;
+        let mut frame = vec![(0, 0, 0); WEB_VIEW_W * WEB_VIEW_H];
+        let (cam_x, cam_y) = self.camera_origin();
         let grade = daylight(self.sim.world.time_of_day());
         let tick = self.sim.world.tick;
 
-        for y in 0..height {
-            for x in 0..width {
-                let wx = ((x as f32 * scale_x) as usize).min(WORLD_W - 1);
-                let wy = ((y as f32 * scale_y) as usize).min(WORLD_H - 1);
+        for vy in 0..WEB_VIEW_H {
+            for vx in 0..WEB_VIEW_W {
+                let wx = cam_x + vx;
+                let wy = cam_y + vy;
                 let color = terrain_color(&self.sim, wx, wy, tick, self.theme);
-                put_rgba(&mut pixels, width, x, y, apply_grade(color, grade));
+                put_frame(
+                    &mut frame,
+                    vx as isize,
+                    vy as isize,
+                    apply_grade(color, grade),
+                );
             }
         }
 
         for &(px, py, amt) in &self.sim.world.pellets {
             if amt > 0 {
-                draw_block(&mut pixels, width, height, px, py, self.theme.pellet, 4);
+                let vx = px as isize - cam_x as isize;
+                let vy = py as isize - cam_y as isize;
+                let pellet = apply_grade(self.theme.pellet, grade);
+                put_frame(&mut frame, vx, vy, pellet);
+                put_frame(&mut frame, vx + 1, vy, pellet);
+                put_frame(&mut frame, vx, vy + 1, pellet);
             }
         }
 
         for creature in &self.sim.creatures {
+            let vx = creature.x as isize - cam_x as isize;
+            let vy = creature.y as isize - cam_y as isize;
             if matches!(creature.activity, Activity::Hatching) {
-                draw_block(
-                    &mut pixels,
-                    width,
-                    height,
-                    creature.x,
-                    creature.y,
-                    self.theme.egg,
-                    6,
-                );
+                draw_egg(&mut frame, vx, vy, grade, self.theme);
                 continue;
             }
-            let body = if creature.faded {
-                self.theme.faded
+            let creature_palette = if creature.faded {
+                CreaturePalette {
+                    body: self.theme.faded,
+                    light: self.theme.faded,
+                    dark: (83, 87, 92),
+                    face: (55, 58, 62),
+                    feet: (82, 92, 98),
+                }
             } else {
-                self.theme.body
+                CreaturePalette {
+                    body: self.theme.body,
+                    light: self.theme.body_light,
+                    dark: self.theme.body_dark,
+                    face: self.theme.face,
+                    feet: self.theme.feet,
+                }
             };
-            let feet = if creature.faded {
-                self.theme.faded
+            let bob = if ((tick / 10) as u32 + creature.id) % 2 == 0 {
+                0
             } else {
-                self.theme.feet
+                -1
             };
-            draw_block(&mut pixels, width, height, creature.x, creature.y, body, 6);
-            draw_block_offset(
-                &mut pixels,
-                width,
-                height,
-                creature.x,
-                creature.y,
-                feet,
-                1,
-                4,
-                2,
+            draw_creature(
+                &mut frame,
+                vx,
+                vy + bob,
+                grade,
+                creature_palette,
+                self.theme.shadow,
             );
+            match creature.activity {
+                Activity::Sleeping => {
+                    put_frame(
+                        &mut frame,
+                        vx + 3,
+                        vy - 3,
+                        apply_grade(self.theme.zzz, grade),
+                    );
+                    put_frame(
+                        &mut frame,
+                        vx + 4,
+                        vy - 4,
+                        apply_grade(self.theme.zzz, grade),
+                    );
+                }
+                Activity::Chatting(_) => {
+                    if (tick / 6) % 2 == 0 {
+                        put_frame(&mut frame, vx + 2, vy - 3, self.theme.chirp);
+                    }
+                }
+                _ => {}
+            }
         }
 
-        draw_cursor(
-            &mut pixels,
-            width,
-            height,
-            self.cursor_x,
-            self.cursor_y,
-            self.theme.cursor,
-        );
+        let cx = self.cursor_x as isize - cam_x as isize;
+        let cy = self.cursor_y as isize - cam_y as isize;
+        for (dx, dy) in [(-1, -1), (2, -1), (-1, 2), (2, 2)] {
+            put_frame(&mut frame, cx + dx, cy + dy, self.theme.cursor);
+        }
+
+        for y in 0..height {
+            let vy = y * WEB_VIEW_H / height;
+            for x in 0..width {
+                let vx = x * WEB_VIEW_W / width;
+                put_rgba(&mut pixels, width, x, y, frame[vy * WEB_VIEW_W + vx]);
+            }
+        }
         pixels
+    }
+}
+
+impl ThrongletsWeb {
+    fn camera_origin(&self) -> (usize, usize) {
+        let x = self
+            .cursor_x
+            .saturating_sub(WEB_VIEW_W / 2)
+            .min(WORLD_W.saturating_sub(WEB_VIEW_W.min(WORLD_W)));
+        let y = self
+            .cursor_y
+            .saturating_sub(WEB_VIEW_H / 2)
+            .min(WORLD_H.saturating_sub(WEB_VIEW_H.min(WORLD_H)));
+        (x, y)
     }
 }
 
@@ -173,6 +245,9 @@ fn offset_clamped(value: usize, delta: i32, max: usize) -> usize {
 }
 
 fn terrain_color(sim: &Sim, x: usize, y: usize, tick: u64, palette: &Palette) -> Rgb {
+    if x >= WORLD_W || y >= WORLD_H {
+        return palette.grass[(x / 6 + y / 5) % 4];
+    }
     match sim.world.at(x, y) {
         Tile::Grass(s) => {
             if diagonal_path(x, y) {
@@ -253,49 +328,71 @@ fn put_rgba(pixels: &mut [u8], width: usize, x: usize, y: usize, c: Rgb) {
     }
 }
 
-fn draw_block(
-    pixels: &mut [u8],
-    width: usize,
-    height: usize,
-    wx: usize,
-    wy: usize,
-    c: Rgb,
-    size: usize,
-) {
-    draw_block_offset(pixels, width, height, wx, wy, c, 0, 0, size);
-}
-
-fn draw_block_offset(
-    pixels: &mut [u8],
-    width: usize,
-    height: usize,
-    wx: usize,
-    wy: usize,
-    c: Rgb,
-    ox: usize,
-    oy: usize,
-    size: usize,
-) {
-    let sx = wx * width / WORLD_W + ox;
-    let sy = wy * height / WORLD_H + oy;
-    for y in sy..(sy + size).min(height) {
-        for x in sx..(sx + size).min(width) {
-            put_rgba(pixels, width, x, y, c);
-        }
+fn put_frame(frame: &mut [Rgb], x: isize, y: isize, c: Rgb) {
+    if x >= 0 && y >= 0 && (x as usize) < WEB_VIEW_W && (y as usize) < WEB_VIEW_H {
+        frame[y as usize * WEB_VIEW_W + x as usize] = c;
     }
 }
 
-fn draw_cursor(pixels: &mut [u8], width: usize, height: usize, wx: usize, wy: usize, c: Rgb) {
-    let sx = wx * width / WORLD_W;
-    let sy = wy * height / WORLD_H;
-    for i in 0..8 {
-        if sx + i < width {
-            put_rgba(pixels, width, sx + i, sy, c);
-            put_rgba(pixels, width, sx + i, (sy + 8).min(height - 1), c);
-        }
-        if sy + i < height {
-            put_rgba(pixels, width, sx, sy + i, c);
-            put_rgba(pixels, width, (sx + 8).min(width - 1), sy + i, c);
-        }
+#[derive(Clone, Copy)]
+struct CreaturePalette {
+    body: Rgb,
+    light: Rgb,
+    dark: Rgb,
+    face: Rgb,
+    feet: Rgb,
+}
+
+fn draw_creature(
+    frame: &mut [Rgb],
+    x: isize,
+    y: isize,
+    g: (f32, f32, f32),
+    p: CreaturePalette,
+    shadow: Rgb,
+) {
+    for dx in 0..5 {
+        put_frame(frame, x + dx, y + 4, apply_grade(shadow, g));
+    }
+    put_frame(frame, x, y, apply_grade(p.light, g));
+    put_frame(frame, x + 4, y, apply_grade(p.light, g));
+    put_frame(frame, x + 1, y + 1, apply_grade(p.light, g));
+    put_frame(frame, x + 3, y + 1, apply_grade(p.light, g));
+    for (dx, dy, color) in [
+        (2, 0, p.light),
+        (1, 1, p.body),
+        (2, 1, p.light),
+        (3, 1, p.body),
+        (1, 2, p.body),
+        (2, 2, p.body),
+        (3, 2, p.dark),
+        (1, 3, p.dark),
+        (2, 3, p.body),
+        (3, 3, p.dark),
+    ] {
+        put_frame(frame, x + dx, y + dy, apply_grade(color, g));
+    }
+    put_frame(frame, x + 1, y + 2, apply_grade(p.face, g));
+    put_frame(frame, x + 3, y + 2, apply_grade(p.face, g));
+    put_frame(frame, x + 1, y + 4, apply_grade(p.feet, g));
+    put_frame(frame, x + 3, y + 4, apply_grade(p.feet, g));
+}
+
+fn draw_egg(frame: &mut [Rgb], x: isize, y: isize, g: (f32, f32, f32), p: &Palette) {
+    for (dx, dy, color) in [
+        (1, 0, p.egg),
+        (2, 0, p.egg),
+        (0, 1, p.egg),
+        (1, 1, p.egg_spot),
+        (2, 1, p.egg),
+        (3, 1, p.egg),
+        (0, 2, p.egg),
+        (1, 2, p.egg),
+        (2, 2, p.egg),
+        (3, 2, p.egg_spot),
+        (1, 3, p.egg),
+        (2, 3, p.egg),
+    ] {
+        put_frame(frame, x + dx, y + dy, apply_grade(color, g));
     }
 }

@@ -14,10 +14,22 @@ const speedEl = document.getElementById("speed");
 let game;
 let paused = false;
 let speed = 1;
+let lastStepAt = 0;
 
-function draw() {
+const STEP_MS = 66;
+
+function draw(now = performance.now()) {
   if (!game) return;
-  if (!paused) game.step(speed);
+  if (!lastStepAt) lastStepAt = now;
+  if (!paused) {
+    const dueSteps = Math.min(Math.floor((now - lastStepAt) / STEP_MS), 4);
+    if (dueSteps > 0) {
+      for (let i = 0; i < dueSteps; i += 1) game.step(speed);
+      lastStepAt += dueSteps * STEP_MS;
+    }
+  } else {
+    lastStepAt = now;
+  }
 
   const rgba = game.render_rgba(canvas.width, canvas.height);
   const image = new ImageData(new Uint8ClampedArray(rgba), canvas.width, canvas.height);

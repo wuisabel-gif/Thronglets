@@ -16,9 +16,12 @@ the simulation running and a culture forms on its own, drifting in ways you
 did not choose. The numbers in the status panel will show it happening.
 
 You are the caretaker. You drop food. You place eggs. You plant new ideas and
-watch what the society does with them. If you neglect them, they fade from
-hunger. They do not die. They lie there, grey and still, until someone feeds
-them. The question of whether that happens is up to you.
+watch what the society does with them. If the population grows past the food
+supply, scarcity starts to bite: hunger climbs faster, social stress spreads,
+eggs slow down, and bad little events ripple through the group. If you neglect
+them long enough, they fade from hunger. They do not die. They lie there, grey
+and still, until someone feeds them. The question of whether that happens is up
+to you.
 
 They remember things. Check the inspector.
 
@@ -79,9 +82,10 @@ cargo run --release -- --headless --csv --seed 7 --ticks 30000 --start-pop 8
 ```
 
 Each row records the state of the colony that day: how many are alive, how
-many eggs and faded creatures, births and fades and meals, average hunger,
-energy and social need, how long creatures spent searching for food, how
-unevenly the food got shared, and how many ideas and variants exist.
+many eggs and faded creatures, births and fades and meals, available food,
+scarcity pressure, average hunger, energy and social need, how long creatures
+spent searching for food, how unevenly the food got shared, and how many ideas
+and variants exist.
 
 To run the same experiment across many worlds at once:
 
@@ -115,6 +119,7 @@ Watch the YouTube demo: https://youtu.be/GRO-5Mw0oL4
 
 The browser demo uses the same Rust simulation core as the terminal game. The
 sim compiles to WebAssembly, and the website draws it on an HTML canvas.
+It is a playable browser demo, not the exact terminal program.
 
 Build the WASM bundle:
 
@@ -141,6 +146,10 @@ No magic here. The whole thing is small rules that add up:
   and social need. They drain over time. Each tick, a simple scoring function
   looks at the meters and picks the most urgent thing to do: eat, sleep,
   find company, or wander.
+- **Food scarcity can hurt the colony.** The world counts berries and dropped
+  pellets as available food. If the living population outruns that supply,
+  scarcity pressure rises. Hunger and social stress worsen faster, reproduction
+  slows, and occasional panic events can damage a creature's state or memory.
 - **Ideas spread through conversation.** When two creatures chat, each one
   passes the other a single idea the listener does not already know. About 3%
   of the time the idea is misheard and becomes a new named variant, so ideas
@@ -230,6 +239,8 @@ sim.rs       one tick of the world: meters drain, minds decide, bodies act,
 render.rs    draws the pixel world using half-block characters, applies
              themes and the day/night tint, renders the HUD
 main.rs      the TUI loop (crossterm + ratatui) and headless mode
+wasm.rs      exposes the Rust simulation to the browser demo
+web/         the HTML canvas wrapper and built WebAssembly bundle
 ```
 
 The `Mind` trait is the extension point. Anything that can turn a perception

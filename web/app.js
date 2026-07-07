@@ -7,6 +7,7 @@ const popEl = document.getElementById("pop");
 const eggsEl = document.getElementById("eggs");
 const fadedEl = document.getElementById("faded");
 const ideasEl = document.getElementById("ideas");
+const dayEl = document.getElementById("day");
 
 let game;
 let paused = false;
@@ -24,7 +25,8 @@ function draw() {
   eggsEl.textContent = game.eggs();
   fadedEl.textContent = game.faded();
   ideasEl.textContent = game.ideas();
-  statusEl.textContent = `${paused ? "Paused" : "Running"} · ${game.theme_name()} · x${speed}`;
+  dayEl.textContent = Math.floor(Number(game.tick()) / 2400);
+  statusEl.textContent = `${paused ? "paused" : "running"} | ${game.theme_name()} | x${speed}`;
 
   requestAnimationFrame(draw);
 }
@@ -68,7 +70,7 @@ async function main() {
     draw();
   } catch (error) {
     console.error(error);
-    statusEl.textContent = "Build the WASM bundle first: scripts/build-wasm.sh";
+    statusEl.textContent = "missing wasm bundle";
   }
 }
 

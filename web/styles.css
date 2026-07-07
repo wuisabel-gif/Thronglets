@@ -169,6 +169,10 @@ canvas {
   font-weight: 700;
 }
 
+.demo-note {
+  color: #84d39c;
+}
+
 button {
   min-height: 22px;
   padding: 0;

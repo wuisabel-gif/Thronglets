@@ -117,6 +117,8 @@ Watch the YouTube demo: https://youtu.be/GRO-5Mw0oL4
 
 ## Browser Demo
 
+Play it in the browser: https://wuisabel-gif.github.io/Thronglets/
+
 The browser demo uses the same Rust simulation core as the terminal game. The
 sim compiles to WebAssembly, and the website draws it on an HTML canvas.
 It is a playable browser demo, not the exact terminal program.
